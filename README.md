@@ -1,14 +1,11 @@
 # AC_2017.1
 ## Requiriments
 - Java
-## PROJ-1
-`
+## PROJ
+```
 http://www-inst.eecs.berkeley.edu/~cs61c/sp17/projs/03_1/
-`
-## PROJ-2
-`
 http://www-inst.eecs.berkeley.edu/~cs61c/sp17/projs/03_2/
-`
+```
 ## Getting Started
 In resources folder run:
 ```
