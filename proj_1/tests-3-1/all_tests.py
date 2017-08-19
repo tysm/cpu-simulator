@@ -1,0 +1,134 @@
+#!/usr/bin/env python
+
+import os
+import os.path
+import tempfile
+import subprocess
+import time
+import signal
+import re
+import sys
+import shutil
+
+file_locations = os.path.expanduser(os.getcwd())
+logisim_location = os.path.join(os.getcwd(),"logisim.jar")
+
+create = 0
+
+if create:
+  new = open('new.out', 'w')
+
+class TestCase():
+  """
+      Runs specified circuit file and compares output against the provided reference trace file.
+  """
+
+  def __init__(self, circfile, tracefile, register_doc):
+    self.circfile  = circfile
+    self.tracefile = tracefile
+    self.register_doc = register_doc
+
+  def __call__(self):
+    output = tempfile.TemporaryFile(mode='r+')
+    proc = subprocess.Popen(["java","-jar",logisim_location,"-tty","table",self.circfile],
+                            stdin=open('/dev/null'),
+                            stdout=subprocess.PIPE)
+    try:
+      reference = open(self.tracefile)
+      passed = compare_unbounded(proc.stdout,reference)
+    finally:
+      os.kill(proc.pid,signal.SIGTERM)
+    if passed:
+      return (True, "Matched expected output")
+    else:
+      return (False, "Did not match expected output: " + self.register_doc)
+
+def compare_unbounded(student_out, reference_out):
+  passed = True
+  while True:
+    line1 = student_out.readline()
+    line2 = reference_out.readline()
+    if line2 == '':
+      break
+    if create:
+      new.write(line1)
+    m = re.match(line2, line1)
+    if m == None or m.start() != 0 or m.end() != len(line2):
+      passed = False
+  return passed
+
+
+#def fraction_lines_match_unbounded2(student_out,reference_out, filename):
+#  if filename[0:3] == 'ALU' and log:
+#    print >> logfile, alu_header
+#  elif filename[0:3] == 'reg' and log:
+#    print >> logfile, reg_header
+#  elif log: #CPU
+#    print >> logfile, cpu_header
+#  total_lines = 0
+#  matched_lines = 0
+#  line1 = student_out.readline()
+#  line2 = reference_out.readline()
+#  while line2:    
+#    if re.split('\W+', line2) == ['', '1', ''] or re.split('\W+', line2) == ['', '0', '']or re.split('\W+', line2) == ['', '']: # Stall line
+#      line3 = reference_out.readline()
+#      while re.match(line2, line1) and not re.match(line3, line1):
+#        if log:
+#          print >> logfile, '\t|' + to_hex(line1) + '\t|' + to_hex(line2) + '\t|'
+#        line1 = student_out.readline()
+#      line2 = line3
+#      continue
+#    if re.match(line2, line1):
+#      matched_lines += 1
+#      if log:
+#        print >> logfile, '\t|' + to_hex(line1) + '\t|'
+#    else:
+#      if log:
+#        print >> logfile, '***\t|' + to_hex(line1) + '\t|'
+#        print >> logfile, 'REF\t|' + to_hex(line2) + '\t|'
+#    if create:
+#      print >> new, line1
+#    total_lines += 1
+#    line1 = student_out.readline()
+#    line2 = reference_out.readline()
+#  if log:
+#    print >> logfile, ''
+#  return float(matched_lines)/float(total_lines) 
+
+def run_tests(tests):
+  # actual submission testing code
+  print "Testing files..."
+  tests_passed = 0
+  tests_failed = 0
+
+  for description,test in tests:
+    test_passed, reason = test()
+    if test_passed:
+      print "\tPASSED test: %s" % description
+      tests_passed += 1
+    else:
+      print "\tFAILED test: %s (%s)" % (description, reason)
+      tests_failed += 1
+  
+  print "Passed %d/%d tests" % (tests_passed, (tests_passed + tests_failed))
+
+tests = [
+  ("ALU add test",TestCase(os.path.join(file_locations,'alu-add.circ'), os.path.join(file_locations,'reference_output/alu-add.out'), "Reference columns are Test #, Equals Output, Result1, Result2")),
+  ("RegFile insert test",
+        TestCase(os.path.join(file_locations,'regfile-insert.circ'),
+                 os.path.join(file_locations,'reference_output/regfile-insert.out'), "Reference columns are Test #, s0 value, s1, s2, ra, sp, Read Data 1, Read Data 2")),
+  ("RegFile $zero test",
+        TestCase(os.path.join(file_locations,'regfile-zero.circ'),
+                 os.path.join(file_locations,'reference_output/regfile-zero.out'), "Reference columns are Test #, s0 value, s1, s2, ra, sp, Read Data 1, Read Data 2")),
+  ("ALU multiply test",TestCase(os.path.join(file_locations,'alu-mult.circ'), os.path.join(file_locations,'reference_output/alu-mult.out'), "Reference columns are Test #, Equals Output, Result1, Result2")),
+  ("ALU shift test",TestCase(os.path.join(file_locations,'alu-shift.circ'), os.path.join(file_locations,'reference_output/alu-shift.out'), "Reference columns are Test #, Equals Output, Result1, Result2")),
+  ("ALU set less than, equals test",TestCase(os.path.join(file_locations,'alu-slteq.circ'), os.path.join(file_locations,'reference_output/alu-slteq.out'), "Reference columns are Test #, Equals Output, Result1, Result2")),
+  ("ALU logical ops test",TestCase(os.path.join(file_locations,'alu-logic.circ'), os.path.join(file_locations,'reference_output/alu-logic.out'), "Reference columns are Test #, Equals Output, Result1, Result2")),
+  ("ALU all test",TestCase(os.path.join(file_locations,'alu-all.circ'), os.path.join(file_locations,'reference_output/alu-all.out'), "Reference columns are Test #, Equals Output, Result1, Result2")),
+  ("RegFile all test",
+        TestCase(os.path.join(file_locations,'regfile-all.circ'),
+                 os.path.join(file_locations,'reference_output/regfile-all.out'), "Reference columns are Test #, s0 value, s1, s2, ra, sp, Read Data 1, Read Data 2")),
+]
+
+if __name__ == '__main__':
+  run_tests(tests)
