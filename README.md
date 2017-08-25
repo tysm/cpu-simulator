@@ -1,6 +1,7 @@
 # AC_2017.1
 ## Requiriments
 - Java
+- Python2.7
 ## PROJ
 ```
 http://www-inst.eecs.berkeley.edu/~cs61c/sp17/projs/03_1/
@@ -11,7 +12,20 @@ In resources folder run:
 ```
 java -jar Logisim-Evolution.jar
 ```
-And open the files in their respective folders
+And open the files in their respective folders:
+```
+AC_2017.1/proj/alu.circ
+AC_2017.1/proj/regfile.circ
+AC_2017.1/proj/cpu.circ
+```
+### Running Tests
+- ALU and RegFile tests:
+Go to 'AC_2017/proj/tests-3-1' and run on terminal:
+```
+./run-all-tests.sh
+./sanity_test.sh
+./sanity_test_personal.sh
+```
 ### Developed by
 Thalles Medrado
 
