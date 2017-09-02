@@ -1,0 +1,7 @@
+BranchEq XorEqResult R
+0         0          0
+0         1          0
+1         0          1 (Don't Branch)
+1         1          0 (Do Branch)
+
+BranchEq AND NOT XorEqResult

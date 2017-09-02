@@ -14,7 +14,7 @@ create = 0
 log = 1
 
 file_locations = os.path.expanduser(os.getcwd())
-logisim_location = os.path.join(os.getcwd(),"logisim.jar")
+logisim_location = os.path.join(os.getcwd(),"..","logisim.jar")
 if log:
     new = open('new.out', 'w')
     logfile = open('TEST_LOG','w')
@@ -37,8 +37,8 @@ def to_hex(num):
 
 def student_reference_match_unbounded(student_out, reference_out):
   while True:
-    line1 = student_out.readline()
-    line2 = reference_out.readline()
+    line1 = student_out.readline().strip(" \r\n")
+    line2 = reference_out.readline().strip(" \r\n")
     if line2 == '':
       break
     if line1 != line2:
@@ -49,8 +49,8 @@ def fraction_lines_match_unbounded(student_out,reference_out):
   total_lines = 0
   matched_lines = 0
   while True:
-    line1 = student_out.readline()
-    line2 = reference_out.readline()
+    line1 = student_out.readline().strip(" \r\n")
+    line2 = reference_out.readline().strip(" \r\n")
     if line2 == '':
       break
     if line1 == line2:
@@ -69,15 +69,15 @@ def fraction_lines_match_unbounded2(student_out,reference_out, filename):
     print >> logfile, cpu_header
   total_lines = 0
   matched_lines = 0
-  line1 = student_out.readline()
-  line2 = reference_out.readline()
+  line1 = student_out.readline().strip(" \r\n")
+  line2 = reference_out.readline().strip(" \r\n")
   while line2:    
     if re.split('\W+', line2) == ['', '1', ''] or re.split('\W+', line2) == ['', '0', '']or re.split('\W+', line2) == ['', '']: # Stall line
-      line3 = reference_out.readline()
+      line3 = reference_out.readline().strip(" \r\n")
       while re.match(line2, line1) and not re.match(line3, line1):
         if log:
           print >> logfile, '\t|' + to_hex(line1) + '\t|' + to_hex(line2) + '\t|'
-        line1 = student_out.readline()
+        line1 = student_out.readline().strip(" \r\n")
       line2 = line3
       continue
     if re.match(line2, line1):
@@ -91,8 +91,8 @@ def fraction_lines_match_unbounded2(student_out,reference_out, filename):
     if create:
       print >> new, line1
     total_lines += 1
-    line1 = student_out.readline()
-    line2 = reference_out.readline()
+    line1 = student_out.readline().strip(" \r\n")
+    line2 = reference_out.readline().strip(" \r\n")
   if log:
     print >> logfile, ''
   return float(matched_lines)/float(total_lines)
@@ -110,13 +110,14 @@ class AbsoluteTestCase(TestCase):
   def __call__(self):
     output = tempfile.TemporaryFile(mode='r+')
     proc = subprocess.Popen(["java","-jar",logisim_location,"-tty","table",os.path.join('.',os.path.basename(self.circfile))],
-                            stdin=open('/dev/null'),
+                            stdin=open(os.devnull),
                             stdout=subprocess.PIPE)
     try:
       reference = open(self.tracefile)
       passed = student_reference_match_unbounded(proc.stdout,reference)
     finally:
-      os.kill(proc.pid,signal.SIGTERM)
+      #os.kill(proc.pid,signal.SIGTERM)
+      proc.terminate()
     if passed:
       return (self.points,"Matched expected output")
     else:
@@ -130,7 +131,7 @@ class FractionalTestCase(TestCase):
     output = tempfile.TemporaryFile(mode='r+')
     #shutil.copy(self.circfile,'.')
     proc = subprocess.Popen(["java","-jar",logisim_location,"-tty","table",os.path.join('.',os.path.basename(self.circfile))],
-                            stdin=open('/dev/null'),
+                            stdin=open(os.devnull),
                             stdout=subprocess.PIPE)
     try:
       reference = open(self.tracefile)
@@ -140,7 +141,8 @@ class FractionalTestCase(TestCase):
       fraction = fraction_lines_match_unbounded2(proc.stdout,reference, filename)
     finally:
       #prevent runaway jvms
-      os.kill(proc.pid,signal.SIGTERM)
+      #os.kill(proc.pid,signal.SIGTERM)
+      proc.terminate()
     if fraction == 1:
       return (self.points,"Matched expected output")
     elif fraction > 0:

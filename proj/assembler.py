@@ -34,30 +34,32 @@ class AssemblerRangeError(AssemblerError):
 
 labelre = re.compile(r"""^(?P<labels>.*:)?(?P<gunk>[^:]*)$""")
 commentre = re.compile(r"""^(?P<important>[^#]*)(?P<comment>#.*)?$""")
-alnumunderre = re.compile(r"""^\w+$""")
+alnumunderdotre = re.compile(r"""^[\w\.]+$""")
 
 #or and add sub slt sltu addu subu
-rtype_re  = re.compile(r'''^(?P<instr>(or|and|add|mult|slt|sll|srl|xor))\s+(?P<rd>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rs>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rt>\$(0|zero|v0|s[0-2]|a0|sp|ra))$''')
+rtype_re  = re.compile(r'''^(?P<instr>(or|and|add|mult|slt|sll|srl|xor))\s+(?P<rd>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rs>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))$''')
 #multu divu
-mult_re    = re.compile(r'''^(?P<instr>(mult))\s+(?P<rs>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rt>\$(0|zero|v0|s[0-2]|a0|sp|ra))$''')
+mult_re    = re.compile(r'''^(?P<instr>(mult))\s+(?P<rs>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))$''')
 #mfhi mflo
-mf_re    = re.compile(r'''^(?P<instr>(mfhi|mflo))\s+(?P<rd>\$(0|zero|v0|s[0-2]|a0|sp|ra))$''')
+mf_re    = re.compile(r'''^(?P<instr>(mfhi|mflo))\s+(?P<rd>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))$''')
 #sll srl sra
-shift_re  = re.compile(r'''^(?P<instr>(sll|srl|sra))\s+(?P<rd>\$(0|zero|at|v[0,1]|a[0-3]|t[0-9]|s[0-7]|k[0-1]|gp|fp|sp|ra))\s+(?P<rt>\$(0|zero|at|v[0,1]|a[0-3]|t[0-9]|s[0-7]|k[0-1]|gp|fp|sp|ra))\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)$''')
+shift_re  = re.compile(r'''^(?P<instr>(sll|srl|sra))\s+(?P<rd>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)$''')
 #ori addi addiu andi
-immed_re  = re.compile(r'''^(?P<instr>(ori|addi|andi|slti|jr))\s+(?P<rt>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rs>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)$''')
+immed_re  = re.compile(r'''^(?P<instr>(ori|addi|andi|slti|jr))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rs>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)$''')
 #lui
 lui_re    = re.compile(r'''^(?P<instr>lui)\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)$''')
 #sw lw sb lb lbu sh lhu swinc
-mem_re    = re.compile(r'''^(?P<instr>(lb|sb|lh|sh))\s+(?P<rt>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)\s*\(\s*(?P<rs>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s*\)$''')
+mem_re    = re.compile(r'''^(?P<instr>(lb|sb|lh|sh))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)\s*\(\s*(?P<rs>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s*\)$''')
+#sw lw sb lb lbu sh lhu swinc with 2nd param as 10+20($rx)
+mem_re2   = re.compile(r'''^(?P<instr>(lb|sb|lh|sh))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<immed1>-?(0x)?[0-9a-fA-F]+)\+(?P<immed2>-?(0x)?[0-9a-fA-F]+)\s*\(\s*(?P<rs>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s*\)$''')
 #j jal
-j_re      = re.compile(r'''^(?P<instr>(j))\s+(?P<rd>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<label>\w+)$''')
+j_re      = re.compile(r'''^(?P<instr>(j))\s+(?P<rd>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<label>[\.\w]+)$''')
 #beq bne
-branch_re = re.compile(r'''^(?P<instr>(beq|bne))\s+(?P<rs>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rt>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<label>\w+)$''') #note switch
+branch_re = re.compile(r'''^(?P<instr>(beq|bne))\s+(?P<rs>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<label>[\.\w]+)$''') #note switch
 #jr
-jr_re     = re.compile(r'''^(?P<instr>(jr))\s+(?P<rt>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rs>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)$''')
+jr_re     = re.compile(r'''^(?P<instr>(jr))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<rs>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<immed>-?(0x)?[0-9a-fA-F]+)$''')
 #la
-la_re     = re.compile(r'''^(?P<instr>(la))\s+(?P<rt>\$(0|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<label>\w+)$''')
+la_re     = re.compile(r'''^(?P<instr>(la))\s+(?P<rt>\$([0-7]|zero|v0|s[0-2]|a0|sp|ra))\s+(?P<label>[\.\w]+)$''')
 signed_re = re.compile(r'addi|beq|bne|lh|sh|sb|lb|slti|jr')
 both_allowed_re = re.compile(r'ori|andi')
 
@@ -92,6 +94,13 @@ functs = {
 
 registers = {
   '0':0,
+  '1':1,
+  '2':2,
+  '3':3,
+  '4':4,
+  '5':5,
+  '6':6,
+  '7':7,
   'zero':0,
   'ra':1,
   's0':2,
@@ -105,7 +114,7 @@ def isPseudoInstruction(s):
   return la_re.match(s) or li_re.match(s)
 
 def validLabel(s):
-  return alnumunderre.match(s) != None
+  return alnumunderdotre.match(s) != None
 
 def fill_symbol_table(inputFile):
   lineNo = 1
@@ -120,6 +129,9 @@ def fill_symbol_table(inputFile):
     line = match.group('important')
     
     line = line.strip()
+
+    if line.startswith('.'):
+      continue
     
     match = labelre.match(line)
     
@@ -176,7 +188,17 @@ def assemble_instructions(inputFile):
     assert(match)
     line = match.group('important')
     
-    line = line.strip()
+    line = line.strip().replace('\t', ' ')
+
+    if line.startswith('.'):
+      args = line.split(' ')
+      if args[0] == '.text':
+        pass
+      elif args[0] == '.globl':
+        pass
+      else:
+        raise AssemblerSyntaxError(lineNo,"Can't parse directive '%s'" % line)
+      continue
     
     match = labelre.match(line)
     
@@ -189,7 +211,7 @@ def assemble_instructions(inputFile):
     shift = False
     immed    = immed_re.match(instruction)
     lui      = lui_re.match(instruction)
-    mem      = mem_re.match(instruction)
+    mem      = mem_re.match(instruction) or mem_re2.match(instruction)
     j        = j_re.match(instruction)
     branch   = branch_re.match(instruction)
 #    jr       = jr_re.match(instruction)
@@ -245,7 +267,10 @@ def assemble_instructions(inputFile):
         opcode = opcodes[mem.group('instr')]
         rs = registers[mem.group('rs')[1:]]
         rt = registers[mem.group('rt')[1:]]
-        immediate = int(mem.group('immed'),0)
+        if 'immed' in mem.groupdict():
+          immediate = int(mem.group('immed'),0)
+        else:
+          immediate = int(mem.group('immed1'),0) + int(mem.group('immed2'),0)
         imm_check(signed,both_allowed,immediate,lineNo)
         num = opcode << 12 | rt << 9 | rs << 6 | (immediate & 0b111111)
         debug("instruction: %s rd: %d rs: %d opcode: %d immediate: %d num: %04x" % (instruction,rt,rs,opcode,immediate,num))

@@ -1,0 +1,67 @@
+
+SLL, SRL, ADD, AND, OR, XOR, SLT
+
+  (R[rs], R[rt]) -> ALU(N) -> (R[rd]
+
+MULT
+
+  (R[rs], R[rt]) -> ALU(7) --> (R[LO])
+                           \_> (R[HI])
+
+LUI
+
+  (imm, 6) -> ALU(0) -> R[LO]
+
+J
+
+  PC+2 ---------------> R[rd]
+  imm -----------------------------------> PC[9:0]
+  
+JR
+
+  PC+2 -------------------> R[rd] 
+  (R[rs], imm) -> ALUB() -> PC
+
+BEQ
+
+                      PC+2 -\
+       (PC, imm) -> ALUB() --\
+  (R[rs], R[rd]) -> ALU(x) -> MUX -> PC
+  
+BNE
+ 
+    Mostly same as above
+
+ADDI (0x6 = 0000101 -> 000010 -> 0x2)
+
+    (R[rs], imm) -> ALU(2) -> (R[rd]
+
+SLTI (0x7 = 0000111 -> 0000101 -> 0x6)
+
+    (R[rs], imm) -> ALU(6) -> (R[rd])
+    
+ANDI (0x8 = 0001000 -> 0000011 -> 0x3)
+
+    (R[rs], imm) -> ALU(3) -> (R[rd]
+
+ORI (0x9 = 0001001 -> 0000100 -> 0x4)
+
+    (R[rs], imm) -> ALU(4) -> (R[rd]
+
+LH
+
+    (R[rs], imm) -> ALU(2) -> MEMREAD() -> R[rd]
+    
+SW
+                  R[rd] ---\
+    (R[rs], imm) -> ALU(2) -> MEMWRITE()
+
+MFHI
+
+    (R[HI], R[0]) -> ALU(0) -> R[rd]
+    
+MFLO
+
+    (R[LO], R[0]) -> ALU(0) -> R[rd]
+
+
