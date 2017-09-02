@@ -20,11 +20,16 @@ AC_2017.1/proj/cpu.circ
 ```
 ### Running Tests
 - ALU and RegFile tests:
-Go to 'AC_2017/proj/tests-3-1' and run on terminal:
+Go to 'AC_2017.1/proj/tests-3-1/' and run on terminal:
 ```
 ./run-all-tests.sh
 ./sanity_test.sh
 ./sanity_test_personal.sh
+```
+- CPU test:
+Go to 'AC_2017.1/proj/' and run on terminal:
+```
+make cpu-single-cycle
 ```
 ### Developed by
 Thalles Medrado
