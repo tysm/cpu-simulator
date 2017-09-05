@@ -1,7 +1,0 @@
-Return Value            $v0
-Parameter Registers     None
-Additional Parameters   Stack (right to left)
-Stack Alignment         2
-Scratch Registers       $a0, $v0, $s2, HI, LO
-Preserved Registers     $s0, $s1, $ra, $sp
-Call List
