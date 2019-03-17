@@ -1,4 +1,4 @@
-# AC_2017.1
+# AC-coursework_2017.1
 ## Requiriments
 - Java
 - Python2.7
