@@ -1,4 +1,7 @@
-# AC-coursework_2017.1
+# CPU Simulator
+
+This repository contains a set of circuit simulators in logisim as part of the Computer Architecture course evaluation (2017.1).
+
 ## Requiriments
 - Java
 - Python2.7
